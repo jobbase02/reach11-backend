@@ -1,29 +1,29 @@
-# 1. Python ka base image le rahe hain
+# 1. Python base image
 FROM python:3.11-slim
 
-# 2. Google Chrome aur zaroori tools install kar rahe hain (Scraping ke liye)
+# 2. Install essential system dependencies
 RUN apt-get update && apt-get install -y \
-    wget \
+    curl \
     gnupg \
+    ca-certificates \
     unzip \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list' \
+    && rm -rf /var/lib/apt/lists/*
+
+# 3. Install Google Chrome (Modern Method)
+RUN curl -fSsL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor | tee /usr/share/keyrings/google-chrome.gpg >> /dev/null \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. Working directory set kar rahe hain
+# 4. Setup App
 WORKDIR /app
-
-# 4. requirements.txt copy karke libraries install kar rahe hain
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Baki saara code copy kar rahe hain
+# 5. Copy Code
 COPY . .
 
-# 6. Port 8000 khol rahe hain (FastAPI ke liye)
+# 6. Expose and Run
 EXPOSE 8000
-
-# 7. Server start karne ki command
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

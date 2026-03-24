@@ -26,6 +26,9 @@ def get_secure_driver(proxy_url):
         options.add_argument(f'--proxy-server={proxy_url}')
     
     options.add_argument('--headless=new') # Off for debugging, uncomment for actual cloud prod
+    options.add_argument('--disable-gpu')           # Azure/Linux ke liye zaroori
+    options.add_argument('--disable-software-rasterizer')
+    options.add_argument('--remote-debugging-port=9222')
 
     try:
         driver = uc.Chrome(options=options, version_main=None)
